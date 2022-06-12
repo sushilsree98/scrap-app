@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import * as _ from "lodash"
+import { FormControl, FormGroup } from '@angular/forms';
 
 export interface URL {
   url: string
@@ -11,46 +12,71 @@ export interface URL {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'scrap-app';
+  loader:boolean= false
+  extracted_data:any;
+  baseUrl = environment.baseUrl;
+  initial:boolean = true
   data:URL = {
     url :''
   }
-  loader:boolean= false
-  extracted_data:any;
-  baseUrl = environment.baseUrl
+  urlForm: FormGroup = new FormGroup({
+    url: new FormControl('')
+  })
+
+
   constructor(
     private _httpClient : HttpClient,
-    private _changeDetectorRef: ChangeDetectorRef
+    private _changeDetectorRef: ChangeDetectorRef,
   ){
-
+    
   }
 
-  processData =  _.debounce(this.getData, 3000,{})
+  keyUpChanges = _.debounce(this.validateURL,1000,{})
+
+  validateURL(url:string){
+      if (!(url.includes('flipkart'))) {
+        this.extracted_data = null;
+        this.loader = false
+        this.urlForm.setValue({ url: '' })
+        return alert("Please enter a valid url from flipkart!")
+        }
+      this.processData(url)
+  }
+
+  processData = _.debounce(this.getData, 3000, {})
+
   
 
-  getData(){
-    this.loader = true
-    console.log(this.data.url)
-    if (!(this.data.url.startsWith('https://www.flipkart.com') || this.data.url.startsWith('www.flipkart.com') || this.data.url.startsWith('flipkart.com'))){
-      return alert("Please enter a valid url from flipkart!")
+  getData(url:string){
+    if(url){
+      this._httpClient.post(this.baseUrl+"add_data?url="+url.trim(),{}).subscribe({
+        next: (res:any) => {
+          if(res?.data){
+            this.extracted_data = res.data[0]
+          }
+          this.urlForm.setValue({ url: '' })
+          this.loader = false
+          if (res?.message == 'invalid URL'){
+            alert('Please enter a valid url')
+          }
+          this._changeDetectorRef.detectChanges()
+        },
+        error: err => {
+          this.loader = false
+          this.urlForm.setValue({ url: '' })
+        }
+      })
     }
-    this._httpClient.post(this.baseUrl+"add_data?url="+this.data.url,{}).subscribe({
-      next: (res:any) => {
-        if(res?.data){
-          this.extracted_data = res.data[0]
-        }
-        this.data.url = ''
-        this.loader = false
-        if (res?.message == 'invalid URL'){
-          alert('Please enter a valid url')
-        }
-        this._changeDetectorRef.detectChanges()
-      },
-      error: err => {
-        this.loader = false
-        this.data.url = ''
-      }
-    })
+  }
+
+  ngOnInit(): void {
+   this.urlForm.get('url')?.valueChanges.subscribe(response=>{
+    if(response){
+      this.loader = true
+      this.keyUpChanges(response)
+    }
+   })
   }
 }

@@ -10,9 +10,9 @@
 </div>
 <div class="container mt-5">
   <!-- Content here -->
-  <form class="mb-3" #urlForm=ngForm>
+  <form class="mb-3"[formGroup]="urlForm" >
     <label for="url" class="form-label">Paste your link here</label>
-    <input type="text" [(ngModel)]="data.url" name="url" (change)="loader=true;processData()" class="form-control" id="url" placeholder="Eg: https://www.flipkart.com/xxxxxx/p/xxxxx">
+    <input type="text" formControlName="url" class="form-control" id="url" placeholder="Eg: https://www.flipkart.com/xxxxxx/p/xxxxx">
   </form>
 </div>
 
