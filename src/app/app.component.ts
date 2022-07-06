@@ -16,6 +16,7 @@ export class AppComponent implements OnInit{
   title = 'scrap-app';
   loader:boolean= false
   extracted_data:any;
+  all_data:any;
   baseUrl = environment.baseUrl;
   initial:boolean = true
   data:URL = {
@@ -58,6 +59,7 @@ export class AppComponent implements OnInit{
           }
           this.urlForm.setValue({ url: '' })
           this.loader = false
+          this.getAllData()
           if (res?.message == 'invalid URL'){
             alert('Please enter a valid url')
           }
@@ -69,6 +71,19 @@ export class AppComponent implements OnInit{
         }
       })
     }
+  }
+
+  getAllData(){
+    this._httpClient.get(this.baseUrl + "get_data").subscribe({
+      next: (res: any) => {        
+        this.all_data = [this.extracted_data,...res]
+        this._changeDetectorRef.detectChanges()
+      },
+      error: err => {
+        this.loader = false
+        this.urlForm.setValue({ url: '' })
+      }
+    })
   }
 
   ngOnInit(): void {

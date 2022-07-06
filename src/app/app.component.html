@@ -20,7 +20,8 @@
   Loading...
 </div>
 
-<div class="container mt-5" *ngIf="extracted_data?.title && !loader">
+<ng-container *ngFor="let extracted_data of all_data">
+  <div class="container mt-5" *ngIf="extracted_data?.title">
   <div class="card" style="width: 100%;">
     <div class="card-body">
       <h5 class="card-title">{{extracted_data.title}}</h5>
@@ -30,5 +31,7 @@
     </div>
   </div>
 </div>
+</ng-container>
+
 
 
